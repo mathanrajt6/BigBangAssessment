@@ -2,7 +2,7 @@
 
 namespace UserAPI.Interfaces
 {
-    public interface iTokenGenerate
+    public interface ITokenGenerate
     {
         public string GenerateToken(UserDTO user);
     }

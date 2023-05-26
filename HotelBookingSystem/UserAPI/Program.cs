@@ -1,7 +1,11 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
+using UserAPI.Interfaces;
+using UserAPI.Models;
+using UserAPI.Services;
 
 namespace UserAPI
 {
@@ -54,6 +58,15 @@ namespace UserAPI
                     ValidateAudience = false
                 };
             });
+
+            builder.Services.AddDbContext<UserContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("conn"));
+            });
+
+            builder.Services.AddScoped<ITokenGenerate, TokenService>();
+            builder.Services.AddScoped<IUser, UserRepo>();
+            builder.Services.AddScoped<IUserAction,UserService>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
