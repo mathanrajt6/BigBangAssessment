@@ -1,4 +1,8 @@
+using HotelAPI.Interfaces;
+using HotelAPI.Models;
+using HotelAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -55,8 +59,15 @@ namespace HotelAPI
                 };
             });
 
-
-
+            builder.Services.AddDbContext<HotelContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("conn"));
+            });
+            builder.Services.AddScoped<IRepo<Hotel,int>, HotelRepo>();
+            builder.Services.AddScoped<IRepo<Room, int>, RoomRepo>();
+            builder.Services.AddScoped<IRepo<Amenities, int>, AmenitiesRepo>();
+            builder.Services.AddScoped<IHotelAction, HotelServices>();
+            builder.Services.AddScoped<IRepo<HotelAmenities,int>,HotelAmentiesRepo>();
 
             var app = builder.Build();
 
