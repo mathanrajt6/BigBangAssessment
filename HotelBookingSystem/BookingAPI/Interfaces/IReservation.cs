@@ -6,8 +6,8 @@ namespace BookingAPI.Interfaces
     {
         ICollection<Reservation> GetAll();
         Reservation Get(int id);
-        Reservation Add(Reservation user);
-        Reservation Update(Reservation user);
+        Reservation Add(Reservation reservation);
+        Reservation Update(Reservation reservation);
         Reservation Delete(int id);
     }
 }

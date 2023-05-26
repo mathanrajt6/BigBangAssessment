@@ -1,4 +1,8 @@
+using BookingAPI.Interfaces;
+using BookingAPI.Models;
+using BookingAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -39,7 +43,6 @@ namespace BookingAPI
                                  }
                              },
                              new string[] {}
-
                      }
                  });
             });
@@ -53,6 +56,10 @@ namespace BookingAPI
                     ValidateAudience = false
                 };
             });
+
+            builder.Services.AddDbContext<ReservationContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("conn")));
+            builder.Services.AddScoped<IReservation, ReservationRepo>();
+            builder.Services.AddScoped<IReservationAction, ReservationService>();
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.

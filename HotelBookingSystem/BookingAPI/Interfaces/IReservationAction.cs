@@ -6,10 +6,10 @@ namespace BookingAPI.Interfaces
     public interface IReservationAction
     {
         Reservation BookReservation(Reservation reservation);
-        Reservation CancelReservation(int id);
+        Reservation CancelReservation(Reservation reservation);
         Reservation EditReservation(Reservation reservation);
-        List<RoomDTO> GetAllBookedRoom(int hotelid);
-        List<Reservation> GetAllReservation();
+        List<RoomDTO> GetAllBookedRoom(HotelDTO hotelDTO);
+        List<Reservation> GetAllReservation(UserDTO userDTO);
 
     }
 }
