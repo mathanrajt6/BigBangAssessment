@@ -7,6 +7,7 @@ namespace BookingAPI.Models
         [Key]
         public int Id { get; set; }
         [Required]
+        public string Username { get; set; }
         public int HotelId { get; set; }
         [Required]
         public int RoomId { get; set; }
