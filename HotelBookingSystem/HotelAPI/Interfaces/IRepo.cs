@@ -6,6 +6,6 @@
         T Get(K id);
         T Add(T item);
         T Update(T item);
-        T Delete(T item);
+        T Delete(K id);
     }
 }
