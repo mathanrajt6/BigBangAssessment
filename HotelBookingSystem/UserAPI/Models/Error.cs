@@ -2,17 +2,17 @@
 {
     public class Error
     {
-        int errorNumber;
-        string message;
+        public int errorNumber { get; set; }
+        public string errorMessage { get; set; }
         public Error()
         {
 
         }
 
-        public Error(int errorNumber, string message)
+        public Error(int errorNumber, string errorMessage)
         {
             this.errorNumber = errorNumber;
-            this.message = message;
+            this.errorMessage = errorMessage;
         }
     }
 }
