@@ -1,9 +1,12 @@
-﻿using HotelAPI.Interfaces;
+﻿using HotelAPI.Exceptions;
+using HotelAPI.Interfaces;
 using HotelAPI.Models;
 using HotelAPI.Models.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using System.Diagnostics;
 
 namespace HotelAPI.Controllers
 {
@@ -20,271 +23,687 @@ namespace HotelAPI.Controllers
         [Authorize]
         [HttpGet]
         [ProducesResponseType(typeof(List<Hotel>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult GetAllHotels()
         {
-            var result = _hotelAction.GetAllHotels();
-            if (result.Count == 0)
+            try
             {
-                return BadRequest(new { message = "No hotels available" });
+                var result = _hotelAction.GetAllHotels();
+                if (result.Count == 0)
+                {
+                    return NotFound(new Error { errorNumber = 404, errorMessage = "No hotels available" });
+                }
+                return Ok(result);
             }
-            return Ok(result);
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
         }
 
         [Authorize(Roles = "staff")]
         [HttpPost]
-        [ProducesResponseType(typeof(Hotel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Hotel), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
         public IActionResult AddHotel([FromBody] Hotel hotel)
         {
-            var result = _hotelAction.AddHotel(hotel);
-            if (result == null)
+            try
             {
-                return BadRequest(new { message = "Hotel already exists" });
+                if (hotel.HotelId != 0)
+                {
+                    return ValidationProblem(title: "Hotel Validation error occured", detail: "HotelId should be empty");
+                }
+                var result = _hotelAction.AddHotel(hotel);
+                if (result == null)
+                {
+                    return BadRequest(new Error { errorNumber = 400, errorMessage = "Hotel already exists" });
+                }
+                return Created("Hotel", result);
             }
-            return Ok(result);
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
         }
 
         [Authorize(Roles = "staff")]
         [HttpPut]
         [ProducesResponseType(typeof(Hotel), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)] 
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status404NotFound)]
+
         public IActionResult EditHotel([FromBody] Hotel hotel)
         {
-            var result = _hotelAction.UpdateHotel(hotel);
-            if (result == null)
+            try
             {
-                return BadRequest(new { message = "Hotel is not available" });
+                if (hotel.HotelId <= 0)
+                {
+                    return ValidationProblem(title: "Hotel Validation error occured", detail: "HotelId should be positive");
+                }
+                var result = _hotelAction.UpdateHotel(hotel);
+                if (result == null)
+                {
+                    return NotFound(new { message = "Hotel is not available" });
+                }
+                return Ok(result);
             }
-            return Ok(result);
+            catch(HotelException he)
+            {
+                return BadRequest(new Error { errorNumber = 400, errorMessage = he.Message });
+            }
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
         }
 
         [Authorize(Roles = "staff")]
         [HttpDelete]
         [ProducesResponseType(typeof(Hotel), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult DeleteHotel([FromBody] Hotel hotel)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status404NotFound)]
+
+        public IActionResult DeleteHotel([FromBody] HotelDTO hotelDTO)
         {
-            var result = _hotelAction.DeleteHotel(hotel);
-            if (result == null)
+            try
             {
-                return BadRequest(new { message = "Hotel is not available" });
+                if (hotelDTO.Id <= 0)
+                {
+                    return ValidationProblem(title: "Hotel Validation error occured", detail: "HotelId should be positive");
+                }
+                var result = _hotelAction.DeleteHotel(hotelDTO);
+                if (result == null)
+                {
+                    return NotFound(new { message = "Hotel is not available" });
+                }
+                return Ok(result);
             }
-            return Ok(result);
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
         }
 
         [Authorize(Roles = "staff")]
         [HttpPost]
-        [ProducesResponseType(typeof(Room), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Room), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
         public IActionResult AddRoom([FromBody] Room room)
         {
-            var result = _hotelAction.AddRoom(room);
-            if (result == null)
+            try
             {
-                return BadRequest(new { message = "Hotel not exists" });
+                if (room.RoomId != 0)
+                {
+                    return ValidationProblem(title: "Room validation error occured", detail: "RoomId should be empty");
+                }
+                var result = _hotelAction.AddRoom(room);
+                if (result == null)
+                {
+                    return BadRequest(new { message = "Hotel not exists" });
+                }
+                return Created("Room", result);
             }
-            return Ok(result);
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
         }
 
         [Authorize(Roles = "staff")]
         [HttpPut]
         [ProducesResponseType(typeof(Room), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+
         public IActionResult EditRoom([FromBody] Room room)
         {
-            var result = _hotelAction.UpdateRoom(room);
-            if (result == null)
+            try
             {
-                return BadRequest(new { message = "Room not Exist" });
+                if (room.RoomId <= 0)
+                {
+                    return ValidationProblem(title: "Room validation error occured", detail: "RoomId should be positive");
+                }
+                var result = _hotelAction.UpdateRoom(room);
+                if (result == null)
+                {
+                    return NotFound(new { message = "Room not Exist" });
+                }
+                return Ok(result);
             }
-            return Ok(result);
+            catch(HotelException he)
+            {
+                return BadRequest(new Error { errorNumber = 400, errorMessage = he.Message });
+            }
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
         }
 
         [Authorize(Roles = "staff")]
         [HttpDelete]
         [ProducesResponseType(typeof(Room), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult DeleteRoom([FromBody] Room room)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        public IActionResult DeleteRoom([FromBody] RoomDTO roomDTO)
         {
-            var result = _hotelAction.DeleteRoom(room);
-            if (result == null)
+            try
             {
-                return BadRequest(new { message = "Room not Exist" });
+                if (roomDTO.Id <= 0)
+                {
+                    return ValidationProblem(title: "Room validation error occured", detail: "RoomId should be positive");
+                }
+                var result = _hotelAction.DeleteRoom(roomDTO);
+                if (result == null)
+                {
+                    return NotFound(new { message = "Room not Exist" });
+                }
+                return Ok(result);
             }
-            return Ok(result);
-        }
-
-        [Authorize]
-        [HttpPost]
-        [ProducesResponseType(typeof(Room), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<List<Room>> GetRoomByHotel([FromBody] Hotel hotel)
-        {
-            var result = _hotelAction.GetAllRoomsByHotel(hotel);
-            if (result.Count == 0)
+            catch (SqlException se)
             {
-                return BadRequest(new { message = "No rooms available" });
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
             }
-            return Ok(result);
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
         }
 
         [Authorize(Roles = "staff")]
         [HttpPost]
-        [ProducesResponseType(typeof(AmentitiesDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(Amenity), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<AmentitiesDTO> AddAmenitiesToHotel(AmentitiesDTO amentitiesDTO)
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        public IActionResult AddAmenities([FromBody] Amenity amenities)
         {
-            var result = _hotelAction.AddAmenities(amentitiesDTO);
-            if (result == null)
+            try
             {
-                return BadRequest(new { message = "Hotel not exists" });
+                if (amenities.AmentityId != 0)
+                {
+                    return ValidationProblem(title: "Amenities validation error occured", detail: "AmenityId should be empty");
+                }
+                var result = _hotelAction.AddAmenities(amenities);
+                if (result == null)
+                {
+                    return BadRequest(new { message = "Amenities already exists" });
+                }
+                return Created("Amenities",result);
             }
-            return Ok(result);
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
         }
 
         [Authorize(Roles = "staff")]
         [HttpPut]
-        [ProducesResponseType(typeof(Amenities), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<Amenities> EditAmenities(AmentitiesDTO amentitiesDTO)
+        [ProducesResponseType(typeof(Amenity), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        public IActionResult EditAmenities([FromBody] Amenity amenities)
         {
-            var result = _hotelAction.UpdateAmenities(amentitiesDTO);
-            if (result == null)
+            try
             {
-                return BadRequest(new { message = "Amenities not exists" });
+                if (amenities.AmentityId <= 0)
+                {
+                    return ValidationProblem(title: "Amenities validation error occured", detail: "AmenityId should be positive");
+                }
+                var result = _hotelAction.UpdateAmenities(amenities);
+                if (result == null)
+                {
+                    return NotFound(new { message = "Amenities not Exist" });
+                }
+                return Ok(result);
             }
-            return Ok(result);
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
         }
 
         [Authorize(Roles = "staff")]
         [HttpDelete]
-        [ProducesResponseType(typeof(AmentitiesDTO), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<AmentitiesDTO> DeleteAmenities(AmentitiesDTO amentitiesDTO)
+        [ProducesResponseType(typeof(Amenity), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        public ActionResult<Amenity> DeleteAmentities([FromBody] AmenityDTO amenityDTO)
         {
-            var result = _hotelAction.DeleteAmenities(amentitiesDTO);
-            if (result == null)
+            try
             {
-                return BadRequest(new { message = "Amenities not exists" });
+                if (amenityDTO.Id <= 0)
+                {
+                    return ValidationProblem(title: "Amenities validation error occured", detail: "AmenityId should be positive");
+                }
+                var amentiy = _hotelAction.DeleteAmenities(amenityDTO);
+                if (amentiy != null)
+                {
+                    return Ok(amentiy);
+                }
+                return NotFound(new Error { errorNumber = 400, errorMessage = "Amentities not exists" });
             }
-            return Ok(result);
+            catch (AmentitiesException ae)
+            {
+                Debug.WriteLine(ae.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = ae.Message });
+            }
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
         }
+
+        [Authorize(Roles = "staff")]
+        [HttpPost]
+        [ProducesResponseType(typeof(HotelAmenity), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        public ActionResult<Amenity> AddAmentitiestoHotel([FromBody] HotelAmenity hotelAmenities)
+        {
+            try
+            {
+                if (hotelAmenities.HotelAmentityId != 0)
+                {
+                    return ValidationProblem(title: "HotelAmenities validation error occured", detail: "HotelAmenityId should be empty");
+                }
+                var amenity = _hotelAction.AddAmentitiesToHotel(hotelAmenities);
+                if (amenity != null)
+                {
+                    return Created("Amentities", amenity);
+                }
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Amentities already to this hotel" });
+            }
+            catch(HotelException he)
+            {
+                return BadRequest(new Error { errorNumber = 400, errorMessage = he.Message });
+            }
+            catch (AmentitiesException ae)
+            {
+                return BadRequest(new Error { errorNumber = 400, errorMessage = ae.Message });
+            }
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
+
+        }
+
+        [Authorize(Roles = "staff")]
+        [HttpDelete]
+        [ProducesResponseType(typeof(HotelAmenity), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<HotelAmenity> RemoveAmentityFromHotel(HotelAmenityDTO hotelAmenityDTO)
+        {
+            try
+            {
+                if (hotelAmenityDTO.Id <= 0)
+                {
+                    return ValidationProblem(title: "HotelAmenities validation error occured", detail: "HotelAmenityId should be positive");
+                }
+                var amenity = _hotelAction.RemoveAmentitiesToHotel(hotelAmenityDTO);
+                if (amenity != null)
+                {
+                    return Ok(amenity);
+                }
+                return NotFound(new Error { errorNumber = 400, errorMessage = "HotelAmentities not Exsits" });
+            }
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
+        }
+
+
 
         [Authorize]
         [HttpPost]
-        [ProducesResponseType(typeof(List<Amenities>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<List<Amenities>> GetAmenitiesByHotel([FromBody] Hotel hotel)
+        [ProducesResponseType(typeof(Room), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails),StatusCodes.Status404NotFound)]
+        public ActionResult<List<Room>> GetAllRoomsByHotel([FromBody]  HotelDTO hotelDTO)
         {
-            var result = _hotelAction.GetAllAmenitiesbyHotel(hotel);
-            if (result.Count == 0)
+            try
             {
-                return BadRequest(new { message = "No amenities available" });
+                if (hotelDTO == null)
+                {
+                    return ValidationProblem(title: "Hotel validation error occured", detail: "Hotel shouldn't be empty");
+                }
+                if (hotelDTO.Id <= 0)
+                {
+                    return ValidationProblem(title: "Hotel validation error occured", detail: "HotelId should be positive");
+                }
+                var result = _hotelAction.GetAllRoomsByHotel(hotelDTO);
+                if (result.Count == 0)
+                {
+                    return NotFound(new { message = "No rooms available" });
+                }
+                return Ok(result);
             }
-            return Ok(result);
+            catch(HotelException he)
+            {
+                return BadRequest(new Error { errorNumber = 400, errorMessage = he.Message });
+            }
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
         }
 
 
         [Authorize]
         [HttpPost]
-        [ProducesResponseType(typeof(List<Room>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<List<Hotel>> GetHotelByAmentities([FromBody] Amenities amenities)
+        [ProducesResponseType(typeof(Room), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<List<Room>> GetRoomByHotel([FromBody] HotelRoomDTO hotelRoomDTO)
         {
-            var result = _hotelAction.GetHotelByAmentities(amenities);
-            if (result.Count == 0)
+            try
             {
-                return BadRequest(new { message = "No Hotels available" });
+
+                if (hotelRoomDTO == null)
+                {
+                    return ValidationProblem(title: "Hotel validation error occured", detail: "Hotel shouldn't be empty");
+                }
+                if (hotelRoomDTO.HotelId <= 0)
+                {
+                    return ValidationProblem(title: "Hotel validation error occured", detail: "HotelId should be positive");
+                }
+                if (hotelRoomDTO.RoomId <= 0)
+                {
+                    return ValidationProblem(title: "Room validation error occured", detail: "RoomId should be positive");
+                }
+                var result = _hotelAction.GetRoombyHotel(hotelRoomDTO);
+                if (result == null)
+                {
+                    return NotFound(new { message = "No rooms available" });
+                }
+                return Ok(result);
             }
-            return Ok(result);
+            catch(HotelException he)
+            {
+                return BadRequest(new Error { errorNumber = 0, errorMessage = he.Message });
+            }
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
         }
 
+
+
+
         [Authorize]
+        [HttpPost]
+        [ProducesResponseType(typeof(List<Amenity>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<List<Amenity>> GetAmenitiesByHotel([FromBody] HotelDTO hotelDTO)
+        {
+            try
+            {
+                var result = _hotelAction.GetAllAmenitiesbyHotel(hotelDTO);
+                if (result.Count == 0)
+                {
+                    return NotFound(new { message = "No amenities available" });
+                }
+                return Ok(result);
+            }
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
+        }
+
         [HttpPost]
         [ProducesResponseType(typeof(List<Hotel>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<List<Hotel>> GetHotelByPriceRange([FromBody] HotelFilterDTO hotelFilterDTO)
+        public ActionResult<List<Hotel>> GetHotelFilters([FromBody] HotelFilterDTO hotelFilterDTO)
         {
-            var result = _hotelAction.GetHotelByPriceRange(hotelFilterDTO);
-            if (result.Count == 0)
+            try
             {
-                return BadRequest(new { message = "No Hotels available" });
+                if (hotelFilterDTO.MaxPrice != null && hotelFilterDTO.MinPrice != null)
+                {
+                    if (hotelFilterDTO.MinPrice <= 0 || hotelFilterDTO.MaxPrice <= 0)
+                    {
+                        return ValidationProblem(title: "Validation Error Occured", detail: "Price can't be negative or zero "); ;
+                    }
+                    if (hotelFilterDTO.MinPrice > hotelFilterDTO.MaxPrice)
+                    {
+                        return ValidationProblem(title: "Validation Error Occured", detail: "MinPrice can't be greater than MaxPrice");
+                    }
+                }
+                if (hotelFilterDTO.Country != null && hotelFilterDTO.Country.Length > 0)
+                {
+                    if (hotelFilterDTO.Country.Length > 50)
+                    {
+                        return ValidationProblem(title: "Validation Error Occured", detail: "Country name can't be greater than 50 characters");
+                    }
+                }
+                if (hotelFilterDTO.City != null && hotelFilterDTO.City.Length > 0)
+                {
+                    if (hotelFilterDTO.City.Length > 50)
+                    {
+                        return ValidationProblem(title: "Validation Error Occured", detail: "City name can't be greater than 50 characters");
+                    }
+                }
+                if (hotelFilterDTO.AmenityId <= 0)
+                {
+                    return ValidationProblem(title: "Validation Error Occured", detail: "AmenityId can't be negative or zero");
+                }
+                return Ok(_hotelAction.GetHotelbyFilter(hotelFilterDTO));
             }
-            return Ok(result);
-        }
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
 
-        [Authorize]
-        [HttpPost]
-        [ProducesResponseType(typeof(List<Hotel>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<List<Hotel>> GetHotelByCountry([FromBody] HotelFilterDTO hotelFilterDTO)
-        {
-            var result = _hotelAction.GetHotelByCountry(hotelFilterDTO);
-            if (result.Count == 0)
-            {
-                return BadRequest(new { message = "No Hotel available" });
-            }
-            return Ok(result);
         }
-
-        [Authorize]
-        [HttpPost]
-        [ProducesResponseType(typeof(List<Hotel>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<List<Hotel>> GetHotelByCity([FromBody] HotelFilterDTO hotelFilterDTO)
-        {
-            var result = _hotelAction.GetHotelByCity(hotelFilterDTO);
-            if (result.Count == 0)
-            {
-                return BadRequest(new { message = "No Hotel available" });
-            }
-            return Ok(result);
-        }
-
-        [Authorize]
-        [HttpPost]
-        [ProducesResponseType(typeof(List<Room>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<List<Room>> GetRoomsByAC([FromBody] Hotel hotel)
-        {
-            var result = _hotelAction.GetRoomsByAC(hotel);
-            if (result.Count == 0)
-            {
-                return BadRequest(new { message = "No Rooms available" });
-            }
-            return Ok(result);
-        }
+    
 
         [Authorize]
         [HttpPost]
         [ProducesResponseType(typeof(List<Room>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<List<Room>> GetRoomsByCapacity([FromBody] RoomFilterDTO roomFilterDTO)
+        [ProducesResponseType(typeof(ValidationProblemDetails),StatusCodes.Status400BadRequest)]
+        public ActionResult<List<Room>> GetRoomByFilter([FromBody] RoomFilterDTO roomFilterDTO)
         {
-            var result = _hotelAction.GetRoomsByCapacity(roomFilterDTO);
-            if (result.Count == 0)
+            try
             {
-                return BadRequest(new { message = "No Rooms available" });
+                if (roomFilterDTO.HotelId <= 0)
+                {
+                    return ValidationProblem(title: "Validation Error Occured", detail: "HotelId can't be negative or zero");
+                }
+                if (roomFilterDTO.MaxPrice != null && roomFilterDTO.MinPrice != null)
+                {
+                    if (roomFilterDTO.MinPrice <= 0 || roomFilterDTO.MaxPrice <= 0)
+                    {
+                        return ValidationProblem(title: "Validation Error Occured", detail: "Price can't be negative or zero "); ;
+                    }
+                    if (roomFilterDTO.MinPrice > roomFilterDTO.MaxPrice)
+                    {
+                        return ValidationProblem(title: "Validation Error Occured", detail: "MinPrice can't be greater than MaxPrice");
+                    }
+                }
+                if (roomFilterDTO.Capacity != null & roomFilterDTO.Capacity <= 0)
+                {
+                    return ValidationProblem(title: "Validation Error Occured", detail: "Capacity can't be negative or zero");
+                }
+                return Ok(_hotelAction.GetRoomsByFilter(roomFilterDTO));
             }
-            return Ok(result);
+            catch(HotelException he)
+            {
+                return BadRequest(new Error { errorNumber = 400, errorMessage = he.Message });
+            }
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
+
         }
+
+
+
 
         [Authorize]
         [HttpPost]
-        [ProducesResponseType(typeof(List<Room>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<List<Room>> GetRoomsByPriceRange([FromBody] RoomFilterDTO roomFilterDTO)
+        [ProducesResponseType(typeof(List<HotelCountDTO>),StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ValidationProblemDetails),StatusCodes.Status400BadRequest)]
+        public ActionResult<List<HotelCountDTO>> GetCountOfRoomAndAmenityForHotel([FromBody] HotelDTO hotelDTO)
         {
-            var result = _hotelAction.GetRoomsByPriceRange(roomFilterDTO);
-            if (result.Count == 0)
+            try
             {
-                return BadRequest(new { message = "No Rooms available" });
+                var hotels = _hotelAction.GetRoomAndAmenityForHotel(hotelDTO);
+                if (hotelDTO.Id <= 0)
+                {
+                    return ValidationProblem(title: "Validation Error Occured", detail: "HotelId can't be negative or zero");
+                }
+                if (hotels != null)
+                {
+                    return Ok(hotels);
+
+                }
+                return NotFound(new Error { errorNumber = 404, errorMessage = "hotel not Found" });
             }
-            return Ok(result);
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
+
         }
 
+        [HttpGet]
+        [ProducesResponseType(typeof(List<HotelCountDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
 
+        public ActionResult<List<HotelCountDTO>> GetCountOfRoomAndAmenityForAllHotel()
+        {
+            try
+            {
+                var hotels = _hotelAction.GetRoomAndAmenityForAllHotel();
+                if (hotels.Count > 0)
+                {
+                    return Ok(hotels);
+
+                }
+                return NotFound(new Error { errorNumber = 404, errorMessage = "no hotel  Found" });
+            }
+            catch (SqlException se)
+            {
+                Debug.WriteLine(se.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Server is not working properly " });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.StackTrace);
+                return BadRequest(new Error { errorNumber = 400, errorMessage = "Something Went Wrong" });
+            }
+
+        }
 
     }
 }
