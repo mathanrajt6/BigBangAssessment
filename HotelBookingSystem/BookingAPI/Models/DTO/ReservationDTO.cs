@@ -1,8 +1,7 @@
 ﻿namespace BookingAPI.Models.DTO
 {
-    public class HotelDTO
+    public class ReservationDTO
     {
         public int Id { get; set; }
-        public DateTime BookedDate { get; set; }
     }
 }

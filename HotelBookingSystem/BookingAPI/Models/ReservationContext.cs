@@ -50,7 +50,47 @@ namespace BookingAPI.Models
                        CheckIn = new DateTime(2023, 8, 15).Date,
                        CheckOut = new DateTime(2023, 8, 20).Date,
                        ReservationDate = DateTime.Now
-                   }
+                   },
+                       new Reservation
+                       {
+                           Id = 5,
+                           Username = "RobertDavis",
+                           HotelId = 2,
+                           RoomId = 3,
+                           CheckIn = new DateTime(2023, 8, 1),
+                           CheckOut = new DateTime(2023, 8, 5),
+                           ReservationDate = new DateTime(2023, 6, 5)
+                       },
+                        new Reservation
+                        {
+                            Id = 6,
+                            Username = "EmilyJohnson",
+                            HotelId = 1,
+                            RoomId = 2,
+                            CheckIn = new DateTime(2023, 8, 10),
+                            CheckOut = new DateTime(2023, 8, 15),
+                            ReservationDate = new DateTime(2023, 6, 7)
+                        },
+                        new Reservation
+                        {
+                            Id = 7,
+                            Username = "DavidBrown",
+                            HotelId = 3,
+                            RoomId = 2,
+                            CheckIn = new DateTime(2023, 9, 1),
+                            CheckOut = new DateTime(2023, 9, 5),
+                            ReservationDate = new DateTime(2023, 6, 10)
+                        },
+                        new Reservation
+                        {
+                            Id = 8,
+                            Username = "JessicaSmith",
+                            HotelId = 2,
+                            RoomId = 1,
+                            CheckIn = new DateTime(2023, 9, 10),
+                            CheckOut = new DateTime(2023, 9, 15),
+                            ReservationDate = new DateTime(2023, 6, 12)
+                        }
                 );
         }
         public DbSet<Reservation> Reservations { get; set; }
