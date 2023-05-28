@@ -65,9 +65,9 @@ namespace HotelAPI
             });
             builder.Services.AddScoped<IRepo<Hotel,int>, HotelRepo>();
             builder.Services.AddScoped<IRepo<Room, int>, RoomRepo>();
-            builder.Services.AddScoped<IRepo<Amenities, int>, AmenitiesRepo>();
+            builder.Services.AddScoped<IRepo<Amenity, int>, AmenitiesRepo>();
             builder.Services.AddScoped<IHotelAction, HotelServices>();
-            builder.Services.AddScoped<IRepo<HotelAmenities,int>,HotelAmentiesRepo>();
+            builder.Services.AddScoped<IRepo<HotelAmenity,int>,HotelAmentiesRepo>();
 
             var app = builder.Build();
 
