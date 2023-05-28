@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BookingAPI.Migrations
 {
     [DbContext(typeof(ReservationContext))]
-    [Migration("20230526080820_init")]
+    [Migration("20230528133603_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -49,7 +49,8 @@ namespace BookingAPI.Migrations
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -62,7 +63,7 @@ namespace BookingAPI.Migrations
                             CheckIn = new DateTime(2023, 5, 26, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CheckOut = new DateTime(2023, 5, 28, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             HotelId = 1,
-                            ReservationDate = new DateTime(2023, 5, 26, 13, 38, 20, 717, DateTimeKind.Local).AddTicks(743),
+                            ReservationDate = new DateTime(2023, 5, 28, 19, 6, 2, 881, DateTimeKind.Local).AddTicks(5615),
                             RoomId = 101,
                             Username = "mathan"
                         },
@@ -72,7 +73,7 @@ namespace BookingAPI.Migrations
                             CheckIn = new DateTime(2023, 6, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CheckOut = new DateTime(2023, 6, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             HotelId = 2,
-                            ReservationDate = new DateTime(2023, 5, 26, 13, 38, 20, 717, DateTimeKind.Local).AddTicks(751),
+                            ReservationDate = new DateTime(2023, 5, 28, 19, 6, 2, 881, DateTimeKind.Local).AddTicks(5628),
                             RoomId = 201,
                             Username = "raj"
                         },
@@ -82,7 +83,7 @@ namespace BookingAPI.Migrations
                             CheckIn = new DateTime(2023, 7, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CheckOut = new DateTime(2023, 7, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             HotelId = 1,
-                            ReservationDate = new DateTime(2023, 5, 26, 13, 38, 20, 717, DateTimeKind.Local).AddTicks(753),
+                            ReservationDate = new DateTime(2023, 5, 28, 19, 6, 2, 881, DateTimeKind.Local).AddTicks(5632),
                             RoomId = 102,
                             Username = "kishore"
                         },
@@ -92,9 +93,49 @@ namespace BookingAPI.Migrations
                             CheckIn = new DateTime(2023, 8, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             CheckOut = new DateTime(2023, 8, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             HotelId = 3,
-                            ReservationDate = new DateTime(2023, 5, 26, 13, 38, 20, 717, DateTimeKind.Local).AddTicks(754),
+                            ReservationDate = new DateTime(2023, 5, 28, 19, 6, 2, 881, DateTimeKind.Local).AddTicks(5635),
                             RoomId = 301,
                             Username = "gokulan"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CheckIn = new DateTime(2023, 8, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CheckOut = new DateTime(2023, 8, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            HotelId = 2,
+                            ReservationDate = new DateTime(2023, 6, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            RoomId = 3,
+                            Username = "RobertDavis"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CheckIn = new DateTime(2023, 8, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CheckOut = new DateTime(2023, 8, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            HotelId = 1,
+                            ReservationDate = new DateTime(2023, 6, 7, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            RoomId = 2,
+                            Username = "EmilyJohnson"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CheckIn = new DateTime(2023, 9, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CheckOut = new DateTime(2023, 9, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            HotelId = 3,
+                            ReservationDate = new DateTime(2023, 6, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            RoomId = 2,
+                            Username = "DavidBrown"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CheckIn = new DateTime(2023, 9, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CheckOut = new DateTime(2023, 9, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            HotelId = 2,
+                            ReservationDate = new DateTime(2023, 6, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            RoomId = 1,
+                            Username = "JessicaSmith"
                         });
                 });
 #pragma warning restore 612, 618
