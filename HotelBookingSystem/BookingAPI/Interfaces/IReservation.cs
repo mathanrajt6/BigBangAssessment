@@ -2,7 +2,7 @@
 
 namespace BookingAPI.Interfaces
 {
-    public interface IReservation
+    public interface IReservation 
     {
         ICollection<Reservation> GetAll();
         Reservation Get(int id);
