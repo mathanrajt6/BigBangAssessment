@@ -10,11 +10,22 @@ namespace UserAPI.Services
         private readonly IUser _userrepo;
         private readonly ITokenGenerate _tokenService;
 
+        /// <summary>
+        /// This method is used to inject the dependencies
+        /// </summary>
+        /// <param name="userrepo"></param>
+        /// <param name="tokenService"></param>
         public UserService(IUser userrepo, ITokenGenerate tokenService)
         {
             _userrepo = userrepo;
             _tokenService = tokenService;
         }
+
+        /// <summary>
+        /// This method is used to Login a  user
+        /// </summary>
+        /// <param name="userDTO"></param>
+        /// <returns>UserDTO </returns>
         public UserDTO Login(UserDTO userDTO)
         {
             UserDTO user = null;
@@ -36,6 +47,12 @@ namespace UserAPI.Services
             return user;
         }
 
+
+        /// <summary>
+        /// This method is used to register a new user
+        /// </summary>
+        /// <param name="userDTO"></param>
+        /// <returns>UserDTO</returns>
         public UserDTO Register(UserRegisterDTO userDTO)
         {
             var existingUser = _userrepo.Get(userDTO.Username);
@@ -56,6 +73,11 @@ namespace UserAPI.Services
             return user;
         }
 
+        /// <summary>
+        /// This method is used to update password of a user
+        /// </summary>
+        /// <param name="userUpdateDTO"></param>
+        /// <returns>UserUpdateDTO</returns>
         public UserDTO UpdatePassword(UserUpdateDTO userUpdateDTO)
         {
             var user = _userrepo.Get(userUpdateDTO.username);
