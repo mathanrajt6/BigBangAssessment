@@ -3,14 +3,25 @@ using HotelAPI.Models;
 
 namespace HotelAPI.Services
 {
-    public class AmenitiesRepo : IRepo<Amenities, int>
+    public class AmenitiesRepo : IRepo<Amenity, int>
     {
         private readonly HotelContext _context;
+
+        /// <summary>
+        /// This method is used to inject the dependencies
+        /// </summary>
+        /// <param name="context"></param>
         public AmenitiesRepo(HotelContext context)
         {
             _context = context;
         }
-        public Amenities Add(Amenities item)
+
+        /// <summary>
+        /// This method adds an amenity to the database if it does not already exist.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns>Amenity</returns>
+        public Amenity Add(Amenity item)
         {
             var amenity = _context.Amenities.SingleOrDefault(a=>a.Name==item.Name);
             if(amenity == null)
@@ -21,9 +32,14 @@ namespace HotelAPI.Services
             return item;
         }
 
-        public Amenities Delete(Amenities item)
+        /// <summary>
+        /// This method deletes an amenity from the database.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Amenity</returns>
+        public Amenity Delete(int id)
         {
-            var amenity = _context.Amenities.SingleOrDefault(a=>a.Id == item.Id);
+            var amenity = _context.Amenities.SingleOrDefault(a=>a.AmentityId == id);
             if(amenity != null)
             {
                 _context.Amenities.Remove(amenity);
@@ -32,22 +48,35 @@ namespace HotelAPI.Services
             return amenity;
         }
 
-        public Amenities Get(int id)
+        /// <summary>
+        /// This method gets an amenity from the database.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns>Amenity</returns>
+        public Amenity Get(int id)
         {
-            return _context.Amenities.SingleOrDefault(a=>a.Id == id);
+            return _context.Amenities.SingleOrDefault(a=>a.AmentityId == id);
         }
 
-        public ICollection<Amenities> GetAll()
+        /// <summary>
+        /// This method gets all amenities from the database.
+        /// </summary>
+        /// <returns>List of Amenity</returns>
+        public ICollection<Amenity> GetAll()
         {
             return _context.Amenities.ToList();
         }
 
-        public Amenities Update(Amenities item)
+        /// <summary>
+        /// This method updates an amenity in the database.
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns>Amenity</returns>
+        public Amenity Update(Amenity item)
         {
-            var amenity = _context.Amenities.SingleOrDefault(a=>a.Id == item.Id);
+            var amenity = _context.Amenities.SingleOrDefault(a=>a.AmentityId == item.AmentityId);
             if(amenity != null)
             {
-                amenity.Name = item.Name;
                 amenity.Description = item.Description;
                 _context.SaveChanges();
             }
