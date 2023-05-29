@@ -29,15 +29,15 @@ namespace BookingAPI.Services
             {
                 if (item.RoomId == reservation.RoomId && item.HotelId==reservation.HotelId)
                 {
-                    if (reservation.CheckIn >= item.CheckIn && reservation.CheckIn <= item.CheckOut)
+                    if (reservation.CheckIn.Date >= item.CheckIn.Date && reservation.CheckIn.Date <= item.CheckOut.Date)
                     {
                         return null;
                     }
-                    else if (reservation.CheckOut >= item.CheckIn && reservation.CheckOut <= item.CheckOut)
+                    else if (reservation.CheckOut.Date >= item.CheckIn.Date && reservation.CheckOut.Date <= item.CheckOut.Date)
                     {
                         return null;
                     }
-                    else if (reservation.CheckIn <= item.CheckIn && reservation.CheckOut >= item.CheckOut)
+                    else if (reservation.CheckIn.Date <= item.CheckIn.Date && reservation.CheckOut.Date >= item.CheckOut.Date)
                     {
                         return null;
                     }
@@ -73,15 +73,15 @@ namespace BookingAPI.Services
             {
                 if (item.RoomId == reservation.RoomId && item.HotelId == reservation.HotelId)
                 {
-                    if (reservation.CheckIn >= item.CheckIn && reservation.CheckIn <= item.CheckOut)
+                    if (reservation.CheckIn.Date >= item.CheckIn.Date && reservation.CheckIn.Date <= item.CheckOut.Date)
                     {
                         return null;
                     }
-                    else if (reservation.CheckOut >= item.CheckIn && reservation.CheckOut <= item.CheckOut)
+                    else if (reservation.CheckOut.Date >= item.CheckIn.Date && reservation.CheckOut.Date <= item.CheckOut.Date)
                     {
                         return null;
                     }
-                    else if (reservation.CheckIn <= item.CheckIn && reservation.CheckOut >= item.CheckOut)
+                    else if (reservation.CheckIn.Date <= item.CheckIn.Date && reservation.CheckOut.Date >= item.CheckOut.Date)
                     {
                         return null;
                     }
@@ -101,7 +101,7 @@ namespace BookingAPI.Services
             List<RoomDTO> rooms = new List<RoomDTO>();
             foreach (var item in reservations)
             {
-                if (item.HotelId == hotelDTO.Id && item.CheckIn <= hotelDTO.BookedDate.Date && item.CheckOut> hotelDTO.BookedDate.Date)
+                if (item.HotelId == hotelDTO.Id && item.CheckIn.Date <= hotelDTO.BookedDate.Date && item.CheckOut.Date >= hotelDTO.BookedDate.Date)
                 {
                     RoomDTO room = new RoomDTO();
                     room.Id = item.RoomId;
@@ -134,7 +134,7 @@ namespace BookingAPI.Services
             var hotels = _resrepo.GetAll().Select(r=>r.HotelId).Distinct();
             foreach (var item in hotels)
             {
-                 hotelCountDTOs.Add(GetCountOfBookedRoomForHotel(new HotelDTO { Id=item,BookedDate=date.BookedDate }));   
+                 hotelCountDTOs.Add(GetCountOfBookedRoomForHotel(new HotelDTO { Id=item,BookedDate=date.BookedDate.Date }));   
             }
             return hotelCountDTOs;
         }
