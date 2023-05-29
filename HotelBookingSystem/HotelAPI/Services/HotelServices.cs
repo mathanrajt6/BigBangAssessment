@@ -126,7 +126,7 @@ namespace HotelAPI.Services
             if(amenity == null)
                 return null;
             var hotelamenity = _hotelamenitiesrepo.GetAll().Where(ha => ha.AmentityId == amenity.AmentityId).ToList();
-            if(hotelamenity == null)
+            if(hotelamenity.Count == 0)
             {    
                 _amenitiesrepo.Delete(amenity.AmentityId);
                 return amenity;
@@ -450,6 +450,10 @@ namespace HotelAPI.Services
         public Hotel UpdateHotel(Hotel hotel)
         {
             var existingHotel = _hotelrepo.Get(hotel.HotelId);
+            if(existingHotel==null)
+            {
+                throw new HotelException("Hotel Not Exists");
+            }
             if (exists(existingHotel,hotel))
             {
                 throw new HotelException("Hotel Can't Change");
